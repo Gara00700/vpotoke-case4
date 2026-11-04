@@ -6,6 +6,7 @@ pass=0; fail=0
 for t in tests/*/; do
   args=(--data "$t" --out "$t")
   [ -f "$t/transitions.csv" ] && args+=(--transitions "$t/transitions.csv")
+  [ -f "$t/employees.csv" ] && args+=(--employees "$t/employees.csv")
   ./sitcenter "${args[@]}" > "$t/actual.txt"
   all=$(cat "$t/actual.txt" "$t/alerts_out.csv" "$t/incidents_out.csv" "$t/audit_log.csv")
   missing=$(while IFS= read -r line; do [ -n "$line" ] && ! grep -qF -- "$line" <<< "$all" && echo "$line"; done < "$t/expected.txt")

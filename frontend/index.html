@@ -43,6 +43,10 @@
   .tag.ASSIGNED, .tag.IN_PROGRESS { background: #d299222b; color: var(--warning); }
   .tag.CLOSED { background: #3fb9502b; color: var(--normal); }
   #loader { display: none; }
+  form.add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  form.add input[type=text] { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit; width: 150px; }
+  form.add label { color: var(--muted); }
+  .off { opacity: .45; }
 </style>
 </head>
 <body>
@@ -81,6 +85,21 @@
     </div>
   </section>
   <section class="panel">
+    <div class="bar">
+      <h2>Сотрудники и зоны ответственности</h2>
+      <button id="download">Скачать employees.csv</button>
+    </div>
+    <form class="add" id="addForm">
+      <input type="text" id="empId" placeholder="ID, напр. e_106" required>
+      <input type="text" id="empName" placeholder="ФИО" required>
+      <select id="empRole"><option>engineer</option><option>dispatcher</option><option>manager</option><option>admin</option></select>
+      <span id="empSites"></span>
+      <button>Добавить / изменить</button>
+    </form>
+    <div class="muted" id="empHint"></div>
+    <table id="employees"></table>
+  </section>
+  <section class="panel">
     <h2>Журнал аудита</h2>
     <table id="audit"></table>
   </section>
@@ -94,9 +113,11 @@ const FILES = {
   incidents: "data/incidents_out.csv",
   audit: "data/audit_log.csv",
   sites: "../01_данные/sites.csv",
+  employees: "../extra_data/employees.csv",
 };
 const RANK = { CRITICAL: 3, WARNING: 2, STALE: 1, NORMAL: 0 };
-let data = { alerts: [], incidents: [], audit: [], sites: [] };
+let data = { alerts: [], incidents: [], audit: [], sites: [], employees: [] };
+let edited = false;  // сотрудники изменены в панели: не затирать их автообновлением
 
 function parseCsv(text) {
   const [header, ...lines] = text.trim().split(/\r?\n/);
@@ -111,6 +132,9 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 const tag = v => `<span class="tag ${esc(v)}">${esc(v)}</span>`;
 const time = iso => iso ? iso.replace("T", " ").slice(0, 16) : "—";
 const siteName = id => (data.sites.find(s => s.site_id === id) || {}).name || id;
+const empName = id => (data.employees.find(e => e.employee_id === id) || {}).name || id;
+const zone = e => (e.sites || "").split(";").filter(Boolean);
+const engineersOf = site => data.employees.filter(e => e.role === "engineer" && e.active !== "no" && zone(e).includes(site));
 
 function table(el, columns, rows) {
   el.innerHTML = `<tr>${columns.map(c => `<th>${c[0]}</th>`).join("")}</tr>` +
@@ -136,7 +160,8 @@ function render() {
     const incs = open.filter(i => i.location === s.site_id).length;
     return `<div class="site ${worst}"><b>${esc(s.name)}</b>${leak}<div class="muted">${esc(s.site_id)} · ${esc(s.zone || "")}</div>
             <div>CRIT ${n("CRITICAL")} · WARN ${n("WARNING")} · STALE ${n("STALE")}</div>
-            <div class="muted">открытых инцидентов: ${incs}</div></div>`;
+            <div class="muted">открытых инцидентов: ${incs}</div>
+            <div class="muted">инженеры: ${esc(engineersOf(s.site_id).map(e => e.name).join(", ") || "не назначены")}</div></div>`;
   }).join("");
 
   const sev = document.getElementById("severityFilter").value;
@@ -150,9 +175,22 @@ function render() {
   const incidents = data.incidents.filter(i => !st || i.status === st).sort((a, b) => b.time.localeCompare(a.time));
   table(document.getElementById("incidents"), [
     ["ID", i => esc(i.incident_id)], ["Тип", i => esc(i.type)], ["Участок", i => esc(siteName(i.location))],
-    ["Статус", i => tag(i.status)], ["Ответственный", i => esc(i.responsible || "—")],
+    ["Статус", i => tag(i.status)], ["Ответственный", i => esc(i.responsible ? empName(i.responsible) : "—")],
     ["Дедлайн", i => time(i.deadline)], ["Источник", i => esc(i.source)],
   ], incidents);
+
+  // Сотрудники: роль, участки, статус учётной записи.
+  const boxes = document.getElementById("empSites");  // не перерисовываем, чтобы автообновление не сбрасывало галочки
+  if (boxes.children.length !== data.sites.length) boxes.innerHTML = data.sites.map(s =>
+    `<label><input type="checkbox" value="${esc(s.site_id)}"> ${esc(s.site_id)}</label>`).join(" ");
+  table(document.getElementById("employees"), [
+    ["ID", e => esc(e.employee_id)], ["ФИО", e => esc(e.name)], ["Роль", e => esc(e.role)],
+    ["Участки", e => esc(zone(e).map(siteName).join(", ") || "—")],
+    ["Учётная запись", e => e.active === "no" ? "отключена" : "активна"],
+  ], data.employees);
+  [...document.getElementById("employees").rows].slice(1).forEach((tr, i) => {
+    if (data.employees[i] && data.employees[i].active === "no") tr.className = "off";
+  });
 
   table(document.getElementById("audit"), [
     ["ID", e => esc(e.event_id)], ["Время", e => time(e.at)], ["Объект", e => esc(e.entity_type + " " + e.entity_id)],
@@ -166,7 +204,7 @@ async function loadFromServer() {
   try {
     const texts = await Promise.all(Object.values(FILES).map(f =>
       fetch(f + "?t=" + Date.now()).then(r => { if (!r.ok) throw new Error(f); return r.text(); })));
-    Object.keys(FILES).forEach((k, i) => data[k] = parseCsv(texts[i]));
+    Object.keys(FILES).forEach((k, i) => { if (!(k === "employees" && edited)) data[k] = parseCsv(texts[i]); });
     document.getElementById("updated").textContent = "Обновлено " + new Date().toLocaleTimeString("ru-RU") + " · автообновление 5 с";
     render();
     return true;
@@ -183,9 +221,36 @@ document.getElementById("files").addEventListener("change", async e => {
     else if (file.name.startsWith("incidents")) data.incidents = rows;
     else if (file.name.startsWith("audit")) data.audit = rows;
     else if (file.name.startsWith("sites")) data.sites = rows;
+    else if (file.name.startsWith("employees")) data.employees = rows;
   }
   document.getElementById("updated").textContent = "Данные загружены из файлов";
   render();
+});
+
+// Добавление сотрудника и закрепление участков. Панель статическая и сама файлы не пишет:
+// изменённый список скачивается как employees.csv и кладётся в extra_data/
+// (или то же самое делается командой ./prototype/sitcenter employee add/assign).
+document.getElementById("addForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const id = document.getElementById("empId").value.trim();
+  const sites = [...document.querySelectorAll("#empSites input:checked")].map(c => c.value).join(";");
+  const row = { employee_id: id, name: document.getElementById("empName").value.trim(),
+                role: document.getElementById("empRole").value, sites, active: "yes" };
+  const i = data.employees.findIndex(x => x.employee_id === id);
+  if (i >= 0) data.employees[i] = row; else data.employees.push(row);
+  edited = true;
+  document.getElementById("empHint").textContent =
+    `Изменено в панели. Скачайте employees.csv в extra_data/ или выполните: ./prototype/sitcenter employee ${i >= 0 ? "assign " + id + ' "' + sites + '"' : "add " + id + ' "' + row.name + '" ' + row.role + ' "' + sites + '"'} --actor a_001`;
+  render();
+});
+
+document.getElementById("download").addEventListener("click", () => {
+  const keys = ["employee_id", "name", "role", "sites", "active"];
+  const csv = [keys.join(","), ...data.employees.map(e => keys.map(k => e[k] || "").join(","))].join("\n") + "\n";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  a.download = "employees.csv";
+  a.click();
 });
 
 document.getElementById("severityFilter").addEventListener("change", render);
