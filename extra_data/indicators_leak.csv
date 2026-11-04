@@ -1,0 +1,10 @@
+time,location,indicator,value,norm_min,norm_max,status
+2025-11-02T16:00:00Z,site_03,leak,0,0,0,NORMAL
+2025-11-02T17:30:00Z,site_02,leak,0,0,0,NORMAL
+2025-11-02T17:30:00Z,site_02,water_flow,140,50,200,NORMAL
+2025-11-02T17:55:00Z,site_02,leak,1,0,0,CRITICAL
+2025-11-02T18:00:00Z,site_02,water_flow,380,50,200,CRITICAL
+2025-11-02T18:15:00Z,site_01,leak,0,0,0,NORMAL
+2025-11-02T18:15:00Z,site_01,water_flow,120,50,200,NORMAL
+2025-11-02T18:20:00Z,site_02,leak,0,0,0,NORMAL
+2025-11-02T18:20:00Z,site_02,water_flow,150,50,200,NORMAL
