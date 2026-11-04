@@ -74,7 +74,6 @@
   .reading.WARNING .val { color: var(--warning); } .reading.CRITICAL .val { color: var(--critical); }
   .reading.STALE .val { color: var(--stale); font-size: 14px; }
   .site-foot { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
-  .leak-banner { margin-top: 10px; padding: 6px 10px; border-radius: 8px; background: #ff5d5d22; color: var(--critical); font-weight: 600; font-size: 12px; }
 
   /* Лента */
   .feed { list-style: none; margin: 0; padding: 6px 18px 14px; }
@@ -235,12 +234,12 @@ const FILES = {
   sites: "../01_данные/sites.csv",
   employees: "../extra_data/employees.csv",
 };
-const READINGS = ["../01_данные/indicators.csv", "../extra_data/indicators_leak.csv", "data/indicators_live.csv"];
+const READINGS = ["../01_данные/indicators.csv", "data/indicators_live.csv"];
 const RANK = { CRITICAL: 3, WARNING: 2, STALE: 1, NORMAL: 0 };
 const COLOR = { CRITICAL: "var(--critical)", WARNING: "var(--warning)", STALE: "var(--stale)", NORMAL: "var(--normal)" };
 const IND = {
   temperature: ["Температура", "°C"], humidity: ["Влажность", "%"], ventilation: ["Вентиляция", ""],
-  leak: ["Протечка", ""], water_flow: ["Расход воды", "л/ч"], equipment: ["Оборудование", ""], other: ["Прочее", ""],
+  equipment: ["Оборудование", ""], other: ["Прочее", ""],
 };
 const ROLE = { engineer: "Инженер", dispatcher: "Диспетчер", manager: "Руководитель", admin: "Администратор" };
 const STATUS = { NEW: "Новый", ASSIGNED: "Назначен", IN_PROGRESS: "В работе", CLOSED: "Закрыт" };
@@ -285,7 +284,6 @@ function slaText(inc, now) {
 function severity(r) {
   if (r.value === "") return "STALE";
   const v = +r.value, lo = +r.norm_min, hi = +r.norm_max;
-  if (r.indicator === "leak") return v > 0 ? "CRITICAL" : "NORMAL";
   if (lo <= v && v <= hi) return "NORMAL";
   const bound = v > hi ? hi : lo;
   if (bound === 0) return "CRITICAL";
@@ -348,12 +346,11 @@ function renderSites(open) {
     const pick = list => list.reduce((w, v) => RANK[v] > RANK[w] ? v : w, "NORMAL");
     const worst = Object.keys(last).length ? pick(Object.values(last).map(severity)) : pick(alerts.map(a => a.severity));
     const n = sev => alerts.filter(a => a.severity === sev).length;
-    const readings = ["temperature", "humidity", "ventilation", "leak", "water_flow"].filter(i => last[i]).map(i => {
+    const readings = ["temperature", "humidity", "ventilation"].filter(i => last[i]).map(i => {
       const r = last[i], sev = severity(r), [name, unit] = IND[i];
-      const val = r.value === "" ? "нет данных" : i === "leak" ? (+r.value ? "ВОДА" : "сухо") : r.value;
-      return `<div class="reading ${sev}"><div class="name">${name}</div><div class="val">${esc(val)} <small>${r.value === "" || i === "leak" ? "" : unit}</small></div></div>`;
+      const val = r.value === "" ? "нет данных" : r.value;
+      return `<div class="reading ${sev}"><div class="name">${name}</div><div class="val">${esc(val)} <small>${r.value === "" ? "" : unit}</small></div></div>`;
     }).join("");
-    const leak = alerts.some(a => a.indicator === "leak") ? `<div class="leak-banner">Протечка на поилочной линии</div>` : "";
     const incs = open.filter(i => i.location === s.site_id).length;
     const eng = engineersOf(s.site_id).map(e => e.name).join(", ") || "инженер не назначен";
     return `<div class="site ${worst}">
@@ -361,7 +358,7 @@ function renderSites(open) {
         ${pill(worst, worst === "NORMAL" ? "норма" : worst)}</div>
       <div class="readings">${readings || `<div class="muted">нет показаний</div>`}</div>
       <div class="site-foot"><span title="Оповещения за период">за период: <b style="color:var(--critical)">${n("CRITICAL")}</b> · <b style="color:var(--warning)">${n("WARNING")}</b> · <b style="color:var(--stale)">${n("STALE")}</b> · инц. ${incs}</span><span title="Ответственные">${esc(eng)}</span></div>
-      ${leak}</div>`;
+      </div>`;
   }).join("");
 }
 

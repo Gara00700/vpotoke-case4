@@ -41,7 +41,7 @@ definitions:
         type: string
         pattern: '^inc_(a[0-9]{2}|[0-9]{3})$'   # inc_001 — из приложения, inc_a01 — автоинцидент
       type:
-        enum: [temperature, ventilation, humidity, equipment, other, leak, water_flow]
+        enum: [temperature, ventilation, humidity, equipment, other]
       location:
         type: string
         pattern: '^site_[0-9]{2}$'               # плюс проверка по sites.csv -> UNKNOWN_LOCATION
@@ -75,7 +75,7 @@ definitions:
         type: string
         pattern: '^site_[0-9]{2}$'
       indicator:
-        enum: [temperature, humidity, ventilation, leak, water_flow]
+        enum: [temperature, humidity, ventilation]
       value:
         type: [number, "null"]                   # null для STALE
       severity:
@@ -128,30 +128,6 @@ definitions:
           code:
             type: string                         # например UNKNOWN_LOCATION
 
-  # Показание датчика протечки / расхода воды (дополнение к образцу TelemetryEvent,
-  # где indicator ограничен тремя значениями)
-  LeakTelemetryEvent:
-    type: object
-    required: [event_id, time, location, indicator, value]
-    additionalProperties: false
-    properties:
-      event_id:
-        type: string
-        pattern: '^evt_[A-Za-z0-9]{6,32}$'
-      time:
-        type: string
-        format: date-time
-      location:
-        type: string
-        pattern: '^site_[0-9]{2}$'
-      indicator:
-        enum: [leak, water_flow]
-      value:
-        type: number                             # leak: 0 — сухо, 1 — протечка; water_flow: л/ч
-      signature:
-        type: string
-        description: HMAC-SHA256 подпись события
-
 examples:
 
   valid_telemetry:
@@ -190,14 +166,6 @@ examples:
     details:
       field: location
       code: UNKNOWN_LOCATION
-
-  valid_leak:
-    event_id: evt_leak0002
-    time: "2025-11-02T17:55:00Z"
-    location: site_02
-    indicator: leak
-    value: 1
-    signature: "hmac:..."
 
   out_of_zone_assign:
     incident_id: inc_a01

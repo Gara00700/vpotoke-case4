@@ -112,7 +112,7 @@ string to_iso(long long minutes) {
 // 3. Проверка входных данных (коды ошибок из 10_API.yaml)
 // ============================================================
 
-const set<string> INDICATORS = {"temperature", "humidity", "ventilation", "leak", "water_flow"};
+const set<string> INDICATORS = {"temperature", "humidity", "ventilation"};
 const set<string> STATUSES = {"NEW", "ASSIGNED", "IN_PROGRESS", "CLOSED"};
 
 string validate_reading(const Reading& r, const set<string>& sites) {
@@ -203,7 +203,6 @@ const map<string, int> SLA_CLOSE_MIN = {{"CRITICAL", 60}, {"WARNING", 240}, {"ST
 string calc_severity(const Reading& r) {
     if (r.value == "") return "STALE";
     double v = stod(r.value), lo = stod(r.norm_min), hi = stod(r.norm_max);
-    if (r.indicator == "leak") return v > 0 ? "CRITICAL" : "NORMAL";  // протечка: сразу CRITICAL
     if (lo <= v && v <= hi) return "NORMAL";
     double bound = v > hi ? hi : lo;
     if (bound == 0) return "CRITICAL";
@@ -303,11 +302,11 @@ void process_readings(vector<Reading>& readings, Report& rep, AuditLog& audit,
         rep.alerts.push_back(a);
         audit.add("alert", a.id, "created", "", a.severity, "system", a.at);
 
-        // A-3: второй CRITICAL за 15 минут (протечка — с первого) -> автоинцидент
+        // A-3: второй CRITICAL по датчику за 15 минут -> автоинцидент
         if (severity != "CRITICAL") continue;
         bool second = last_critical.count(key) && r.minute - last_critical[key] <= CRITICAL_WINDOW_MIN;
         last_critical[key] = r.minute;
-        if ((second || r.indicator == "leak") && !has_incident.count(key)) {
+        if (second && !has_incident.count(key)) {
             has_incident.insert(key);
             char inc_id[16];
             snprintf(inc_id, sizeof inc_id, "inc_a%02zu", rep.auto_incidents.size() + 1);

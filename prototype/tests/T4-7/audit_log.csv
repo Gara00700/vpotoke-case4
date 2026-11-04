@@ -1,5 +1,6 @@
 event_id,entity_type,entity_id,action,from_status,to_status,actor,at
-evt_0001,alert,alrt_0001,created,,CRITICAL,system,2025-11-02T17:55:00Z
-evt_0002,incident,inc_a01,created,,NEW,system,2025-11-02T17:55:00Z
-evt_0003,incident,inc_a01,assigned,NEW,ASSIGNED,d_001,2025-11-02T17:58:00Z
-evt_0004,incident,inc_a01,status_changed,ASSIGNED,IN_PROGRESS,e_103,2025-11-02T18:02:00Z
+evt_0001,alert,alrt_0001,created,,CRITICAL,system,2025-11-02T17:40:00Z
+evt_0002,alert,alrt_0002,created,,CRITICAL,system,2025-11-02T17:50:00Z
+evt_0003,incident,inc_a01,created,,NEW,system,2025-11-02T17:50:00Z
+evt_0004,incident,inc_a01,assigned,NEW,ASSIGNED,d_001,2025-11-02T17:58:00Z
+evt_0005,incident,inc_a01,status_changed,ASSIGNED,IN_PROGRESS,e_103,2025-11-02T18:02:00Z
