@@ -6,108 +6,228 @@
 <title>Ситуационный центр</title>
 <style>
   :root {
-    --bg: #0f1419; --panel: #182029; --line: #2a3440; --text: #e6edf3; --muted: #8b98a5;
-    --critical: #f85149; --warning: #d29922; --stale: #8b949e; --normal: #3fb950; --accent: #58a6ff;
+    --bg: #0b1016; --bg2: #0f151d; --panel: #141c26; --panel2: #1a2430; --line: #243040; --text: #e7eef6; --muted: #8796a8;
+    --critical: #ff5d5d; --warning: #f0b429; --stale: #9aa5b1; --normal: #3ecf8e; --accent: #5aa9ff;
+    --radius: 14px;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
-           padding: 16px 24px; border-bottom: 1px solid var(--line); }
-  h1 { margin: 0; font-size: 20px; }
-  h2 { margin: 0 0 12px; font-size: 15px; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; min-height: 100vh;
+         background: radial-gradient(1200px 600px at 80% -10%, #16314d55, transparent), var(--bg); }
   .muted { color: var(--muted); }
-  main { padding: 20px 24px; display: grid; gap: 20px; max-width: 1400px; margin: 0 auto; }
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
-  .kpi, .panel, .site { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
-  .kpi { padding: 14px 16px; }
-  .kpi b { display: block; font-size: 28px; margin-top: 4px; }
-  .sites { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-  .site { padding: 14px 16px; border-left: 4px solid var(--normal); }
-  .site.CRITICAL { border-left-color: var(--critical); }
-  .site.WARNING { border-left-color: var(--warning); }
-  .site.STALE { border-left-color: var(--stale); }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 1000px) { .grid2 { grid-template-columns: 1fr; } }
-  .panel { padding: 16px; overflow: auto; max-height: 460px; }
-  .bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-  .bar h2 { margin: 0; }
-  select, button, input[type=file] { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit; }
+  b, strong { font-weight: 600; }
+
+  /* Шапка */
+  header { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); background: #0b1016cc; border-bottom: 1px solid var(--line); }
+  .top { max-width: 1440px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 12px; margin-right: auto; }
+  .logo { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+          background: linear-gradient(135deg, #5aa9ff, #3ecf8e); color: #06121f; font-weight: 800; font-size: 15px; }
+  .brand h1 { margin: 0; font-size: 17px; letter-spacing: .2px; }
+  .brand div div { font-size: 12px; }
+  .live { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--stale); }
+  .dot.on { background: var(--normal); box-shadow: 0 0 0 0 #3ecf8e88; animation: pulse 2s infinite; }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 8px #3ecf8e00; } 100% { box-shadow: 0 0 0 0 #3ecf8e00; } }
+  nav { max-width: 1440px; margin: 0 auto; padding: 0 24px; display: flex; gap: 4px; overflow-x: auto; }
+  nav button { background: none; border: 0; color: var(--muted); font: inherit; padding: 10px 14px; cursor: pointer;
+               border-bottom: 2px solid transparent; white-space: nowrap; }
+  nav button:hover { color: var(--text); }
+  nav button.active { color: var(--text); border-bottom-color: var(--accent); }
+  nav .count { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 6px; border-radius: 10px; font-size: 11px;
+               background: var(--panel2); color: var(--muted); }
+  nav .count.hot { background: #ff5d5d33; color: var(--critical); }
+
+  main { max-width: 1440px; margin: 0 auto; padding: 20px 24px 40px; }
+  main > .view { display: none; gap: 20px; }
+  main > .view.active { display: grid; }
+  .card { background: linear-gradient(180deg, var(--panel), var(--bg2)); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+  .card > h2, .card-head { margin: 0; padding: 14px 18px; font-size: 14px; display: flex; align-items: center; gap: 10px;
+                           justify-content: space-between; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+  .card-head h2 { margin: 0; font-size: 14px; }
+  .card-body { padding: 14px 18px; }
+  .scroll { max-height: 600px; overflow: auto; }
+
+  /* KPI */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+  .kpi { padding: 16px 18px; position: relative; overflow: hidden; }
+  .kpi::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--c, var(--accent)); }
+  .kpi .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
+  .kpi .value { font-size: 32px; font-weight: 700; margin-top: 6px; color: var(--c, var(--text)); }
+  .kpi .sub { font-size: 12px; color: var(--muted); }
+
+  /* Участки */
+  .overview { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) 360px; }
+  @media (max-width: 1100px) { .overview { grid-template-columns: 1fr; } }
+  .sites { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .site { padding: 16px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--panel); }
+  .site.CRITICAL { border-color: #ff5d5d66; box-shadow: inset 0 0 0 1px #ff5d5d22, 0 0 24px #ff5d5d14; }
+  .site.WARNING { border-color: #f0b42955; }
+  .site.STALE { border-color: #9aa5b155; }
+  .site-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .site-head b { font-size: 15px; }
+  .readings { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0 12px; }
+  .reading { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  .reading .name { font-size: 11px; color: var(--muted); }
+  .reading .val { font-size: 18px; font-weight: 600; }
+  .reading .val small { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .reading.WARNING .val { color: var(--warning); } .reading.CRITICAL .val { color: var(--critical); }
+  .reading.STALE .val { color: var(--stale); font-size: 14px; }
+  .site-foot { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
+  .leak-banner { margin-top: 10px; padding: 6px 10px; border-radius: 8px; background: #ff5d5d22; color: var(--critical); font-weight: 600; font-size: 12px; }
+
+  /* Лента */
+  .feed { list-style: none; margin: 0; padding: 6px 18px 14px; }
+  .feed li { display: grid; grid-template-columns: 12px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px dashed var(--line); }
+  .feed li:last-child { border-bottom: 0; }
+  .feed .mark { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; background: var(--c); }
+  .feed .what { font-weight: 500; }
+  .feed .when { font-size: 12px; color: var(--muted); }
+
+  /* Таблицы и элементы */
   table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  th { color: var(--muted); font-weight: 500; position: sticky; top: -16px; background: var(--panel); }
-  .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; }
-  .tag.CRITICAL { background: #f851492b; color: var(--critical); }
-  .tag.WARNING { background: #d299222b; color: var(--warning); }
-  .tag.STALE { background: #8b949e2b; color: var(--stale); }
-  .tag.NEW { background: #58a6ff2b; color: var(--accent); }
-  .tag.ASSIGNED, .tag.IN_PROGRESS { background: #d299222b; color: var(--warning); }
-  .tag.CLOSED { background: #3fb9502b; color: var(--normal); }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .5px;
+       position: sticky; top: 0; background: var(--panel); z-index: 1; }
+  tbody tr:hover { background: #ffffff06; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .pill.CRITICAL { background: #ff5d5d22; color: var(--critical); }
+  .pill.WARNING { background: #f0b42922; color: var(--warning); }
+  .pill.STALE { background: #9aa5b122; color: var(--stale); }
+  .pill.NORMAL, .pill.CLOSED { background: #3ecf8e22; color: var(--normal); }
+  .pill.NEW { background: #5aa9ff22; color: var(--accent); }
+  .pill.ASSIGNED { background: #b38cff22; color: #c3a6ff; }
+  .pill.IN_PROGRESS { background: #f0b42922; color: var(--warning); }
+  .sla { font-size: 12px; } .sla.late { color: var(--critical); font-weight: 600; } .sla.ok { color: var(--normal); }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .chip { background: var(--bg2); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+  .chip.active { color: var(--text); border-color: var(--accent); background: #5aa9ff1a; }
+  input[type=text], input[type=search], select { background: var(--bg2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font: inherit; }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  .btn { background: var(--accent); color: #06121f; border: 0; border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer; }
+  .btn.ghost { background: var(--bg2); color: var(--text); border: 1px solid var(--line); font-weight: 500; }
+  .empty { padding: 28px; text-align: center; color: var(--muted); }
+  .off td { opacity: .45; }
+
+  /* Сотрудники */
+  .staff { grid-template-columns: 360px minmax(0, 1fr); align-items: start; }
+  @media (max-width: 1000px) { .staff { grid-template-columns: 1fr; } }
+  .form { display: grid; gap: 12px; }
+  .form label { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
+  .checks { display: flex; flex-wrap: wrap; gap: 6px; }
+  .checks label { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--text); cursor: pointer; }
+  .checks input { accent-color: var(--accent); }
+  .hint { font-size: 12px; color: var(--muted); background: var(--bg2); border: 1px dashed var(--line); border-radius: 8px; padding: 10px; overflow-wrap: anywhere; }
+  .zone-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .zone { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 13px; }
+  .zone .who { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .zone.none .who { color: var(--critical); }
+
+  /* Уведомление о новом CRITICAL */
+  .toast { position: fixed; right: 24px; bottom: 24px; max-width: 360px; padding: 14px 16px; border-radius: 12px; background: #2a1215;
+           border: 1px solid #ff5d5d77; color: var(--text); box-shadow: 0 10px 40px #0008; opacity: 0; pointer-events: none; transform: translateY(20px); transition: .3s; z-index: 20; }
+  .toast.show { opacity: 1; transform: none; }
+  .toast b { color: var(--critical); }
   #loader { display: none; }
-  form.add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-  form.add input[type=text] { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit; width: 150px; }
-  form.add label { color: var(--muted); }
-  .off { opacity: .45; }
+  @media (max-width: 600px) { .top, nav, main { padding-left: 16px; padding-right: 16px; } }
 </style>
 </head>
 <body>
 <header>
-  <div>
-    <h1>Ситуационный центр · птицефабрика</h1>
-    <div class="muted" id="updated">Загрузка данных…</div>
+  <div class="top">
+    <div class="brand">
+      <div class="logo">СЦ</div>
+      <div><h1>Ситуационный центр · птицефабрика</h1><div class="muted" id="period">—</div></div>
+    </div>
+    <div id="loader"><input type="file" id="files" multiple accept=".csv"></div>
+    <div class="live"><span class="dot" id="dot"></span><span id="updated">Загрузка…</span></div>
   </div>
-  <div id="loader">
-    <span class="muted">Откройте выходные файлы программы:</span>
-    <input type="file" id="files" multiple accept=".csv">
-  </div>
+  <nav id="tabs">
+    <button data-view="overview" class="active">Обзор</button>
+    <button data-view="alerts">Оповещения<span class="count" id="cAlerts">0</span></button>
+    <button data-view="incidents">Инциденты<span class="count" id="cIncidents">0</span></button>
+    <button data-view="staff">Сотрудники<span class="count" id="cStaff">0</span></button>
+    <button data-view="audit">Аудит</button>
+  </nav>
 </header>
 
 <main>
-  <section class="kpis" id="kpis"></section>
-  <section class="sites" id="sites"></section>
-  <section class="grid2">
-    <div class="panel">
-      <div class="bar">
-        <h2>Оповещения</h2>
-        <select id="severityFilter">
-          <option value="">все уровни</option><option>CRITICAL</option><option>WARNING</option><option>STALE</option>
-        </select>
+  <!-- Обзор -->
+  <section class="view active" id="view-overview">
+    <div class="kpis" id="kpis"></div>
+    <div class="overview">
+      <div class="card">
+        <div class="card-head"><h2>Участки</h2><span class="muted" style="font-size:12px">текущее состояние по последним показаниям · внизу — оповещения за период</span></div>
+        <div class="card-body"><div class="sites" id="sites"></div></div>
       </div>
-      <table id="alerts"></table>
-    </div>
-    <div class="panel">
-      <div class="bar">
-        <h2>Инциденты</h2>
-        <select id="statusFilter">
-          <option value="">все статусы</option><option>NEW</option><option>ASSIGNED</option><option>IN_PROGRESS</option><option>CLOSED</option>
-        </select>
+      <div class="card">
+        <div class="card-head"><h2>Лента событий</h2><span class="muted" style="font-size:12px">последние 12</span></div>
+        <ul class="feed scroll" id="feed"></ul>
       </div>
-      <table id="incidents"></table>
     </div>
   </section>
-  <section class="panel">
-    <div class="bar">
-      <h2>Сотрудники и зоны ответственности</h2>
-      <button id="download">Скачать employees.csv</button>
+
+  <!-- Оповещения -->
+  <section class="view" id="view-alerts">
+    <div class="card">
+      <div class="card-head">
+        <div class="toolbar" id="sevChips"></div>
+        <div class="toolbar"><select id="alertSite"></select><input type="search" id="alertSearch" placeholder="Поиск по показателю"></div>
+      </div>
+      <div class="scroll"><table id="alerts"></table></div>
     </div>
-    <form class="add" id="addForm">
-      <input type="text" id="empId" placeholder="ID, напр. e_106" required>
-      <input type="text" id="empName" placeholder="ФИО" required>
-      <select id="empRole"><option>engineer</option><option>dispatcher</option><option>manager</option><option>admin</option></select>
-      <span id="empSites"></span>
-      <button>Добавить / изменить</button>
-    </form>
-    <div class="muted" id="empHint"></div>
-    <table id="employees"></table>
   </section>
-  <section class="panel">
-    <h2>Журнал аудита</h2>
-    <table id="audit"></table>
+
+  <!-- Инциденты -->
+  <section class="view" id="view-incidents">
+    <div class="card">
+      <div class="card-head">
+        <div class="toolbar" id="stChips"></div>
+        <div class="toolbar"><select id="incSite"></select><label class="muted" style="font-size:13px"><input type="checkbox" id="onlyLate"> только просроченные</label></div>
+      </div>
+      <div class="scroll"><table id="incidents"></table></div>
+    </div>
+  </section>
+
+  <!-- Сотрудники -->
+  <section class="view staff" id="view-staff">
+    <div class="card">
+      <h2>Добавить или изменить сотрудника</h2>
+      <form class="form card-body" id="addForm">
+        <label>ID сотрудника<input type="text" id="empId" placeholder="e_106" required pattern="[a-z]_[0-9]{3}"></label>
+        <label>ФИО<input type="text" id="empName" placeholder="Петров П.П." required></label>
+        <label>Роль<select id="empRole">
+          <option value="engineer">Инженер</option><option value="dispatcher">Диспетчер</option>
+          <option value="manager">Руководитель</option><option value="admin">Администратор</option></select></label>
+        <label>Зона ответственности<div class="checks" id="empSites"></div></label>
+        <button class="btn">Сохранить</button>
+        <button class="btn ghost" type="button" id="download">Скачать employees.csv</button>
+        <div class="hint" id="empHint">Панель не записывает файлы сама: сохраните employees.csv в extra_data/ или выполните команду, которая появится здесь.</div>
+      </form>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Закрепление участков</h2></div>
+      <div class="zone-grid" id="zones"></div>
+      <div class="scroll"><table id="employees"></table></div>
+    </div>
+  </section>
+
+  <!-- Аудит -->
+  <section class="view" id="view-audit">
+    <div class="card">
+      <div class="card-head"><h2>Журнал аудита</h2><span class="muted" style="font-size:12px">только дополняется · последние 300</span></div>
+      <div class="scroll"><table id="audit"></table></div>
+    </div>
   </section>
 </main>
 
+<div class="toast" id="toast"></div>
+
 <script>
-// Панель читает файлы, которые пишет prototype/sitcenter:
-// alerts_out.csv, incidents_out.csv, audit_log.csv (папка frontend/data) и справочник 01_данные/sites.csv.
+// Панель читает файлы, которые пишет prototype/sitcenter (frontend/data),
+// справочники 01_данные/sites.csv и extra_data/employees.csv,
+// а для карточек участков — исходные показания (необязательно).
 const FILES = {
   alerts: "data/alerts_out.csv",
   incidents: "data/incidents_out.csv",
@@ -115,10 +235,20 @@ const FILES = {
   sites: "../01_данные/sites.csv",
   employees: "../extra_data/employees.csv",
 };
+const READINGS = ["../01_данные/indicators.csv", "../extra_data/indicators_leak.csv", "data/indicators_live.csv"];
 const RANK = { CRITICAL: 3, WARNING: 2, STALE: 1, NORMAL: 0 };
-let data = { alerts: [], incidents: [], audit: [], sites: [], employees: [] };
-let edited = false;  // сотрудники изменены в панели: не затирать их автообновлением
+const COLOR = { CRITICAL: "var(--critical)", WARNING: "var(--warning)", STALE: "var(--stale)", NORMAL: "var(--normal)" };
+const IND = {
+  temperature: ["Температура", "°C"], humidity: ["Влажность", "%"], ventilation: ["Вентиляция", ""],
+  leak: ["Протечка", ""], water_flow: ["Расход воды", "л/ч"], equipment: ["Оборудование", ""], other: ["Прочее", ""],
+};
+const ROLE = { engineer: "Инженер", dispatcher: "Диспетчер", manager: "Руководитель", admin: "Администратор" };
+const STATUS = { NEW: "Новый", ASSIGNED: "Назначен", IN_PROGRESS: "В работе", CLOSED: "Закрыт" };
 
+let data = { alerts: [], incidents: [], audit: [], sites: [], employees: [], readings: [] };
+let sevFilter = "", stFilter = "", edited = false, lastCritical = null;
+
+// ---------- утилиты ----------
 function parseCsv(text) {
   const [header, ...lines] = text.trim().split(/\r?\n/);
   const keys = header.split(",");
@@ -127,94 +257,213 @@ function parseCsv(text) {
     return Object.fromEntries(keys.map((k, i) => [k, cells[i] ?? ""]));
   });
 }
-
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-const tag = v => `<span class="tag ${esc(v)}">${esc(v)}</span>`;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const $ = id => document.getElementById(id);
 const time = iso => iso ? iso.replace("T", " ").slice(0, 16) : "—";
+const pill = (v, text) => `<span class="pill ${esc(v)}">${esc(text ?? v)}</span>`;
 const siteName = id => (data.sites.find(s => s.site_id === id) || {}).name || id;
 const empName = id => (data.employees.find(e => e.employee_id === id) || {}).name || id;
-const zone = e => (e.sites || "").split(";").filter(Boolean);
-const engineersOf = site => data.employees.filter(e => e.role === "engineer" && e.active !== "no" && zone(e).includes(site));
+const zoneOf = e => (e.sites || "").split(";").filter(Boolean);
+const engineersOf = site => data.employees.filter(e => e.role === "engineer" && e.active !== "no" && zoneOf(e).includes(site));
+const indName = i => (IND[i] || [i])[0];
+const fmtMin = m => m >= 60 ? `${Math.floor(m / 60)} ч ${m % 60} мин` : `${m} мин`;
 
-function table(el, columns, rows) {
-  el.innerHTML = `<tr>${columns.map(c => `<th>${c[0]}</th>`).join("")}</tr>` +
-    (rows.length ? rows.map(r => `<tr>${columns.map(c => `<td>${c[1](r)}</td>`).join("")}</tr>`).join("")
-                 : `<tr><td class="muted" colspan="${columns.length}">нет записей</td></tr>`);
+// «Сейчас» для SLA — самое позднее время в данных (данные кейса за 2025 год).
+function modelNow() {
+  const all = [...data.alerts.map(a => a.at), ...data.incidents.map(i => i.time), ...data.readings.map(r => r.time)].filter(Boolean).sort();
+  return all.length ? new Date(all[all.length - 1]) : new Date();
+}
+function slaText(inc, now) {
+  if (inc.status === "CLOSED") return `<span class="sla muted">закрыт</span>`;
+  if (!inc.deadline) return "—";
+  const min = Math.round((new Date(inc.deadline) - now) / 60000);
+  if (min < 0) return `<span class="sla late">просрочен на ${fmtMin(-min)}</span>`;
+  return `<span class="sla ok">осталось ${fmtMin(min)}</span>`;
 }
 
+// Тот же расчёт severity, что в sitcenter.cpp (calc_severity), — для карточек участков.
+function severity(r) {
+  if (r.value === "") return "STALE";
+  const v = +r.value, lo = +r.norm_min, hi = +r.norm_max;
+  if (r.indicator === "leak") return v > 0 ? "CRITICAL" : "NORMAL";
+  if (lo <= v && v <= hi) return "NORMAL";
+  const bound = v > hi ? hi : lo;
+  if (bound === 0) return "CRITICAL";
+  return ((v > hi ? v - hi : lo - v) / bound * 100) > 10 ? "CRITICAL" : "WARNING";
+}
+
+function table(el, columns, rows, rowClass) {
+  el.innerHTML = `<thead><tr>${columns.map(c => `<th>${c[0]}</th>`).join("")}</tr></thead><tbody>` +
+    (rows.length ? rows.map(r => `<tr class="${rowClass ? rowClass(r) : ""}">${columns.map(c => `<td>${c[1](r)}</td>`).join("")}</tr>`).join("")
+                 : `<tr><td class="empty" colspan="${columns.length}">нет записей</td></tr>`) + "</tbody>";
+}
+function chips(el, values, current, onPick) {
+  el.innerHTML = values.map(([v, t]) => `<button class="chip ${v === current ? "active" : ""}" data-v="${v}">${t}</button>`).join("");
+  el.querySelectorAll("button").forEach(b => b.onclick = () => onPick(b.dataset.v));
+}
+function siteSelect(el) {
+  const cur = el.value;
+  el.innerHTML = `<option value="">все участки</option>` + data.sites.map(s => `<option value="${esc(s.site_id)}">${esc(s.name)}</option>`).join("");
+  el.value = cur;
+}
+
+// ---------- отрисовка ----------
 function render() {
+  const now = modelNow();
   const open = data.incidents.filter(i => i.status !== "CLOSED");
+  const late = open.filter(i => i.deadline && new Date(i.deadline) < now);
   const count = sev => data.alerts.filter(a => a.severity === sev).length;
-  document.getElementById("kpis").innerHTML = [
-    ["CRITICAL", count("CRITICAL")], ["WARNING", count("WARNING")], ["STALE", count("STALE")],
-    ["Открытые инциденты", open.length], ["Автоинциденты", data.incidents.filter(i => i.source === "auto").length],
-  ].map(([label, n]) => `<div class="kpi"><span class="muted">${label}</span><b>${n}</b></div>`).join("");
+  const times = data.readings.map(r => r.time).filter(Boolean).sort();
+  $("period").textContent = times.length ? `Данные: ${time(times[0])} — ${time(times[times.length - 1])}` : "Данные датчиков не загружены";
 
-  // Карточка участка: худший уровень за период, число алертов по уровням, открытые инциденты.
-  const sites = data.sites.length ? data.sites : [...new Set(data.alerts.map(a => a.location))].map(id => ({ site_id: id, name: id }));
-  document.getElementById("sites").innerHTML = sites.map(s => {
-    const alerts = data.alerts.filter(a => a.location === s.site_id);
-    const worst = alerts.reduce((w, a) => RANK[a.severity] > RANK[w] ? a.severity : w, "NORMAL");
-    const n = sev => alerts.filter(a => a.severity === sev).length;
-    const leak = alerts.some(a => a.indicator === "leak") ? " " + tag("CRITICAL").replace(">CRITICAL<", ">ПРОТЕЧКА<") : "";
-    const incs = open.filter(i => i.location === s.site_id).length;
-    return `<div class="site ${worst}"><b>${esc(s.name)}</b>${leak}<div class="muted">${esc(s.site_id)} · ${esc(s.zone || "")}</div>
-            <div>CRIT ${n("CRITICAL")} · WARN ${n("WARNING")} · STALE ${n("STALE")}</div>
-            <div class="muted">открытых инцидентов: ${incs}</div>
-            <div class="muted">инженеры: ${esc(engineersOf(s.site_id).map(e => e.name).join(", ") || "не назначены")}</div></div>`;
-  }).join("");
+  $("cAlerts").textContent = data.alerts.length;
+  $("cIncidents").textContent = open.length;
+  $("cIncidents").className = "count" + (late.length ? " hot" : "");
+  $("cStaff").textContent = data.employees.filter(e => e.active !== "no").length;
 
-  const sev = document.getElementById("severityFilter").value;
-  const alerts = data.alerts.filter(a => !sev || a.severity === sev).sort((a, b) => b.at.localeCompare(a.at));
-  table(document.getElementById("alerts"), [
-    ["Время", a => time(a.at)], ["Участок", a => esc(siteName(a.location))], ["Показатель", a => esc(a.indicator)],
-    ["Значение", a => esc(a.value || "—")], ["Уровень", a => tag(a.severity)], ["Действие", a => esc(a.action)],
-  ], alerts);
+  $("kpis").innerHTML = [
+    ["CRITICAL", count("CRITICAL"), "var(--critical)", "эскалировано руководителю"],
+    ["WARNING", count("WARNING"), "var(--warning)", "оповещение диспетчеру"],
+    ["STALE", count("STALE"), "var(--stale)", "нет данных от датчика"],
+    ["Открытые инциденты", open.length, "var(--accent)", `просрочено по SLA: ${late.length}`],
+    ["Автоинциденты", data.incidents.filter(i => i.source === "auto").length, "var(--normal)", "созданы правилом A-3"],
+  ].map(([l, v, c, s]) => `<div class="card kpi" style="--c:${c}"><div class="label">${l}</div><div class="value">${v}</div><div class="sub">${s}</div></div>`).join("");
 
-  const st = document.getElementById("statusFilter").value;
-  const incidents = data.incidents.filter(i => !st || i.status === st).sort((a, b) => b.time.localeCompare(a.time));
-  table(document.getElementById("incidents"), [
-    ["ID", i => esc(i.incident_id)], ["Тип", i => esc(i.type)], ["Участок", i => esc(siteName(i.location))],
-    ["Статус", i => tag(i.status)], ["Ответственный", i => esc(i.responsible ? empName(i.responsible) : "—")],
-    ["Дедлайн", i => time(i.deadline)], ["Источник", i => esc(i.source)],
-  ], incidents);
-
-  // Сотрудники: роль, участки, статус учётной записи.
-  const boxes = document.getElementById("empSites");  // не перерисовываем, чтобы автообновление не сбрасывало галочки
-  if (boxes.children.length !== data.sites.length) boxes.innerHTML = data.sites.map(s =>
-    `<label><input type="checkbox" value="${esc(s.site_id)}"> ${esc(s.site_id)}</label>`).join(" ");
-  table(document.getElementById("employees"), [
-    ["ID", e => esc(e.employee_id)], ["ФИО", e => esc(e.name)], ["Роль", e => esc(e.role)],
-    ["Участки", e => esc(zone(e).map(siteName).join(", ") || "—")],
-    ["Учётная запись", e => e.active === "no" ? "отключена" : "активна"],
-  ], data.employees);
-  [...document.getElementById("employees").rows].slice(1).forEach((tr, i) => {
-    if (data.employees[i] && data.employees[i].active === "no") tr.className = "off";
-  });
-
-  table(document.getElementById("audit"), [
-    ["ID", e => esc(e.event_id)], ["Время", e => time(e.at)], ["Объект", e => esc(e.entity_type + " " + e.entity_id)],
-    ["Действие", e => esc(e.action)], ["Статус", e => esc((e.from_status ? e.from_status + " → " : "") + e.to_status)],
-    ["Кто", e => esc(e.actor)],
-  ], [...data.audit].reverse().slice(0, 200));
+  renderSites(open);
+  renderFeed();
+  renderAlerts();
+  renderIncidents(now);
+  renderStaff();
+  renderAudit();
 }
 
-// Режим 1: страница открыта через веб-сервер — читаем файлы сами и обновляем раз в 5 секунд.
+function renderSites(open) {
+  const sites = data.sites.length ? data.sites : [...new Set(data.alerts.map(a => a.location))].map(id => ({ site_id: id, name: id }));
+  $("sites").innerHTML = sites.map(s => {
+    const alerts = data.alerts.filter(a => a.location === s.site_id);
+    // последнее показание по каждому показателю участка
+    const last = {};
+    data.readings.filter(r => r.location === s.site_id).forEach(r => { if (!last[r.indicator] || r.time > last[r.indicator].time) last[r.indicator] = r; });
+    // состояние «сейчас» — худшее из последних показаний (если их нет — худший алерт за период)
+    const pick = list => list.reduce((w, v) => RANK[v] > RANK[w] ? v : w, "NORMAL");
+    const worst = Object.keys(last).length ? pick(Object.values(last).map(severity)) : pick(alerts.map(a => a.severity));
+    const n = sev => alerts.filter(a => a.severity === sev).length;
+    const readings = ["temperature", "humidity", "ventilation", "leak", "water_flow"].filter(i => last[i]).map(i => {
+      const r = last[i], sev = severity(r), [name, unit] = IND[i];
+      const val = r.value === "" ? "нет данных" : i === "leak" ? (+r.value ? "ВОДА" : "сухо") : r.value;
+      return `<div class="reading ${sev}"><div class="name">${name}</div><div class="val">${esc(val)} <small>${r.value === "" || i === "leak" ? "" : unit}</small></div></div>`;
+    }).join("");
+    const leak = alerts.some(a => a.indicator === "leak") ? `<div class="leak-banner">Протечка на поилочной линии</div>` : "";
+    const incs = open.filter(i => i.location === s.site_id).length;
+    const eng = engineersOf(s.site_id).map(e => e.name).join(", ") || "инженер не назначен";
+    return `<div class="site ${worst}">
+      <div class="site-head"><div><b>${esc(s.name)}</b><div class="muted" style="font-size:12px">${esc(s.site_id)} · ${esc(s.zone || "")}</div></div>
+        ${pill(worst, worst === "NORMAL" ? "норма" : worst)}</div>
+      <div class="readings">${readings || `<div class="muted">нет показаний</div>`}</div>
+      <div class="site-foot"><span title="Оповещения за период">за период: <b style="color:var(--critical)">${n("CRITICAL")}</b> · <b style="color:var(--warning)">${n("WARNING")}</b> · <b style="color:var(--stale)">${n("STALE")}</b> · инц. ${incs}</span><span title="Ответственные">${esc(eng)}</span></div>
+      ${leak}</div>`;
+  }).join("");
+}
+
+function renderFeed() {
+  const items = [...data.alerts].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 12);
+  $("feed").innerHTML = items.length ? items.map(a => `<li><span class="mark" style="--c:${COLOR[a.severity]}"></span><div>
+      <div class="what">${esc(siteName(a.location))}: ${esc(indName(a.indicator))} ${a.value ? esc(a.value) : "— нет данных"}</div>
+      <div class="when">${time(a.at)} · ${a.severity} · ${a.action === "ESCALATED" ? "эскалировано" : "оповещение"}</div></div></li>`).join("")
+    : `<li class="empty" style="display:block">событий нет</li>`;
+}
+
+function renderAlerts() {
+  chips($("sevChips"), [["", "Все"], ["CRITICAL", "CRITICAL"], ["WARNING", "WARNING"], ["STALE", "STALE"]], sevFilter, v => { sevFilter = v; render(); });
+  siteSelect($("alertSite"));
+  const site = $("alertSite").value, q = $("alertSearch").value.trim().toLowerCase();
+  const rows = data.alerts.filter(a => (!sevFilter || a.severity === sevFilter) && (!site || a.location === site) &&
+      (!q || (a.indicator + " " + indName(a.indicator)).toLowerCase().includes(q)))
+    .sort((a, b) => b.at.localeCompare(a.at));
+  table($("alerts"), [
+    ["ID", a => `<span class="muted">${esc(a.alert_id)}</span>`], ["Время", a => time(a.at)], ["Участок", a => esc(siteName(a.location))],
+    ["Показатель", a => esc(indName(a.indicator))], ["Значение", a => esc(a.value || "—")], ["Уровень", a => pill(a.severity)],
+    ["Действие", a => a.action === "ESCALATED" ? "эскалировано руководителю" : a.action === "DUPLICATE" ? "дубль" : "оповещение"],
+  ], rows);
+}
+
+function renderIncidents(now) {
+  chips($("stChips"), [["", "Все"], ["NEW", "Новые"], ["ASSIGNED", "Назначены"], ["IN_PROGRESS", "В работе"], ["CLOSED", "Закрыты"]], stFilter, v => { stFilter = v; render(); });
+  siteSelect($("incSite"));
+  const site = $("incSite").value, onlyLate = $("onlyLate").checked;
+  const rows = data.incidents.filter(i => (!stFilter || i.status === stFilter) && (!site || i.location === site) &&
+      (!onlyLate || (i.status !== "CLOSED" && i.deadline && new Date(i.deadline) < now)))
+    .sort((a, b) => b.time.localeCompare(a.time));
+  table($("incidents"), [
+    ["ID", i => `<b>${esc(i.incident_id)}</b>`], ["Создан", i => time(i.time)], ["Тип", i => esc(indName(i.type))],
+    ["Участок", i => esc(siteName(i.location))], ["Статус", i => pill(i.status, STATUS[i.status])],
+    ["Ответственный", i => esc(i.responsible ? empName(i.responsible) : "—")],
+    ["SLA", i => slaText(i, now)], ["Источник", i => i.source === "auto" ? pill("NEW", "авто") : esc(i.source === "mobile" ? "приложение" : i.source)],
+  ], rows);
+}
+
+function renderStaff() {
+  const boxes = $("empSites");  // не перерисовываем, чтобы автообновление не сбрасывало галочки
+  if (boxes.children.length !== data.sites.length)
+    boxes.innerHTML = data.sites.map(s => `<label><input type="checkbox" value="${esc(s.site_id)}"> ${esc(s.name)}</label>`).join("");
+  $("zones").innerHTML = data.sites.map(s => {
+    const eng = engineersOf(s.site_id);
+    return `<div class="zone ${eng.length ? "" : "none"}"><b>${esc(s.name)}</b><div class="who">${eng.length ? esc(eng.map(e => e.name).join(", ")) : "нет инженера"}</div></div>`;
+  }).join("");
+  table($("employees"), [
+    ["ID", e => `<b>${esc(e.employee_id)}</b>`], ["ФИО", e => esc(e.name)], ["Роль", e => esc(ROLE[e.role] || e.role)],
+    ["Участки", e => esc(zoneOf(e).map(siteName).join(", ") || "—")],
+    ["Статус", e => e.active === "no" ? pill("STALE", "отключён") : pill("CLOSED", "активен")],
+  ], data.employees, e => e.active === "no" ? "off" : "");
+}
+
+function renderAudit() {
+  table($("audit"), [
+    ["ID", e => `<span class="muted">${esc(e.event_id)}</span>`], ["Время", e => time(e.at)],
+    ["Объект", e => esc((e.entity_type === "incident" ? "инцидент " : "оповещение ") + e.entity_id)],
+    ["Действие", e => esc(e.action)], ["Статус", e => esc((e.from_status ? e.from_status + " → " : "") + e.to_status)],
+    ["Кто", e => esc(e.actor === "system" ? "система" : e.actor === "mobile" ? "приложение" : empName(e.actor))],
+  ], [...data.audit].reverse().slice(0, 300));
+}
+
+// Всплывающее уведомление при появлении нового CRITICAL (для живой демонстрации).
+function notifyNew() {
+  const crit = data.alerts.filter(a => a.severity === "CRITICAL").sort((a, b) => a.at.localeCompare(b.at));
+  const newest = crit[crit.length - 1];
+  if (lastCritical !== null && newest && newest.alert_id !== lastCritical) {
+    $("toast").innerHTML = `<b>CRITICAL</b> · ${esc(siteName(newest.location))}<br>${esc(indName(newest.indicator))}: ${esc(newest.value || "нет данных")} · ${time(newest.at)}`;
+    $("toast").classList.add("show");
+    setTimeout(() => $("toast").classList.remove("show"), 6000);
+  }
+  lastCritical = newest ? newest.alert_id : "";
+}
+
+// ---------- загрузка ----------
+async function fetchText(f) {
+  const r = await fetch(f + "?t=" + Date.now());
+  if (!r.ok) throw new Error(f);
+  return r.text();
+}
 async function loadFromServer() {
   try {
-    const texts = await Promise.all(Object.values(FILES).map(f =>
-      fetch(f + "?t=" + Date.now()).then(r => { if (!r.ok) throw new Error(f); return r.text(); })));
+    const texts = await Promise.all(Object.values(FILES).map(fetchText));
     Object.keys(FILES).forEach((k, i) => { if (!(k === "employees" && edited)) data[k] = parseCsv(texts[i]); });
-    document.getElementById("updated").textContent = "Обновлено " + new Date().toLocaleTimeString("ru-RU") + " · автообновление 5 с";
+    const extra = await Promise.allSettled(READINGS.map(fetchText));  // показания необязательны
+    data.readings = extra.filter(x => x.status === "fulfilled").flatMap(x => parseCsv(x.value));
+    $("dot").classList.add("on");
+    $("updated").textContent = "Онлайн · " + new Date().toLocaleTimeString("ru-RU");
     render();
+    notifyNew();
     return true;
   } catch (e) {
+    $("dot").classList.remove("on");
+    $("updated").textContent = "Нет связи с сервером";
     return false;
   }
 }
 
-// Режим 2: страница открыта как файл — пользователь выбирает CSV вручную.
-document.getElementById("files").addEventListener("change", async e => {
+$("files").addEventListener("change", async e => {
+  data.readings = [];
   for (const file of e.target.files) {
     const rows = parseCsv(await file.text());
     if (file.name.startsWith("alerts")) data.alerts = rows;
@@ -222,29 +471,35 @@ document.getElementById("files").addEventListener("change", async e => {
     else if (file.name.startsWith("audit")) data.audit = rows;
     else if (file.name.startsWith("sites")) data.sites = rows;
     else if (file.name.startsWith("employees")) data.employees = rows;
+    else if (file.name.startsWith("indicators")) data.readings.push(...rows);
   }
-  document.getElementById("updated").textContent = "Данные загружены из файлов";
+  $("updated").textContent = "Данные из файлов";
   render();
 });
 
-// Добавление сотрудника и закрепление участков. Панель статическая и сама файлы не пишет:
-// изменённый список скачивается как employees.csv и кладётся в extra_data/
-// (или то же самое делается командой ./prototype/sitcenter employee add/assign).
-document.getElementById("addForm").addEventListener("submit", e => {
+// ---------- действия ----------
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  document.querySelectorAll("#tabs button").forEach(x => x.classList.toggle("active", x === b));
+  document.querySelectorAll("main > .view").forEach(v => v.classList.toggle("active", v.id === "view-" + b.dataset.view));
+});
+["alertSite", "alertSearch", "incSite", "onlyLate"].forEach(id => $(id).addEventListener("input", render));
+
+// Сотрудник: панель меняет список у себя, а сохранить его можно скачиванием
+// employees.csv в extra_data/ или командой ./prototype/sitcenter employee add/assign.
+$("addForm").addEventListener("submit", e => {
   e.preventDefault();
-  const id = document.getElementById("empId").value.trim();
+  const id = $("empId").value.trim();
   const sites = [...document.querySelectorAll("#empSites input:checked")].map(c => c.value).join(";");
-  const row = { employee_id: id, name: document.getElementById("empName").value.trim(),
-                role: document.getElementById("empRole").value, sites, active: "yes" };
+  const row = { employee_id: id, name: $("empName").value.trim(), role: $("empRole").value, sites, active: "yes" };
   const i = data.employees.findIndex(x => x.employee_id === id);
   if (i >= 0) data.employees[i] = row; else data.employees.push(row);
   edited = true;
-  document.getElementById("empHint").textContent =
-    `Изменено в панели. Скачайте employees.csv в extra_data/ или выполните: ./prototype/sitcenter employee ${i >= 0 ? "assign " + id + ' "' + sites + '"' : "add " + id + ' "' + row.name + '" ' + row.role + ' "' + sites + '"'} --actor a_001`;
+  const cmd = i >= 0 ? `assign ${id} "${sites}"` : `add ${id} "${row.name}" ${row.role} "${sites}"`;
+  $("empHint").innerHTML = `Сохранено в панели. Чтобы записать в систему, скачайте employees.csv в extra_data/ или выполните:<br><code>./prototype/sitcenter employee ${esc(cmd)} --actor a_001</code>`;
   render();
 });
-
-document.getElementById("download").addEventListener("click", () => {
+$("download").addEventListener("click", () => {
   const keys = ["employee_id", "name", "role", "sites", "active"];
   const csv = [keys.join(","), ...data.employees.map(e => keys.map(k => e[k] || "").join(","))].join("\n") + "\n";
   const a = document.createElement("a");
@@ -253,16 +508,9 @@ document.getElementById("download").addEventListener("click", () => {
   a.click();
 });
 
-document.getElementById("severityFilter").addEventListener("change", render);
-document.getElementById("statusFilter").addEventListener("change", render);
-
 loadFromServer().then(ok => {
   if (ok) setInterval(loadFromServer, 5000);
-  else {
-    document.getElementById("loader").style.display = "block";
-    document.getElementById("updated").textContent = "Нет связи с сервером: выберите файлы вручную";
-    render();
-  }
+  else { $("loader").style.display = "block"; $("updated").textContent = "Откройте через сервер или выберите CSV"; render(); }
 });
 </script>
 </body>
