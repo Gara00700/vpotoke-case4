@@ -1,0 +1,2 @@
+alert_id,at,location,indicator,value,severity,action
+alrt_0001,2025-11-02T17:55:00Z,site_02,leak,1,CRITICAL,ESCALATED
