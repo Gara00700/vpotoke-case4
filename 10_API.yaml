@@ -31,69 +31,126 @@ definitions:
         type: string
         description: HMAC-SHA256 подпись события (защита от подмены)
 
-  # TODO — заполните
+  # Инцидент из мобильного приложения (source=mobile) или созданный системой (source=auto)
   IncidentEvent:
     type: object
     required: [incident_id, type, location, time, status]
+    additionalProperties: false
     properties:
       incident_id:
-        ?   # подсказка: строка, pattern ^inc_[0-9]{3}$
+        type: string
+        pattern: '^inc_(a[0-9]{2}|[0-9]{3})$'   # inc_001 — из приложения, inc_a01 — автоинцидент
       type:
-        ?   # подсказка: enum temperature / ventilation / humidity / equipment / other
+        enum: [temperature, ventilation, humidity, equipment, other, leak, water_flow]
       location:
-        ?   # подсказка: строка, pattern ^site_[0-9]{2}$
+        type: string
+        pattern: '^site_[0-9]{2}$'               # плюс проверка по sites.csv -> UNKNOWN_LOCATION
       time:
-        ?   # подсказка: string, format date-time
+        type: string
+        format: date-time
       responsible:
-        ?   # подсказка: строка, nullable
+        type: [string, "null"]                   # employee_id, появляется при ASSIGNED
+        pattern: '^[a-z]_[0-9]{3}$'
       status:
-        ?   # подсказка: enum NEW / ASSIGNED / IN_PROGRESS / CLOSED
+        enum: [NEW, ASSIGNED, IN_PROGRESS, CLOSED]
+      deadline:
+        type: string
+        format: date-time                        # по SLA: CRITICAL +1 ч, WARNING +4 ч
       source:
-        ?   # подсказка: enum mobile / sensor / auto
+        enum: [mobile, sensor, auto]
 
-  # TODO — заполните
+  # Алерт — результат срабатывания правила A-1…A-5 (строка alerts_out.csv)
   AlertEvent:
     type: object
     required: [alert_id, severity, at]
+    additionalProperties: false
     properties:
       alert_id:
-        ?   # подсказка: строка, pattern ^alrt_[0-9]{4}$
+        type: string
+        pattern: '^alrt_[0-9]{4}$'
       measurement_id:
-        ?   # подсказка: FK на Measurement
+        type: string
+        description: FK -> Measurement; в прототипе показание задаётся полями location, indicator, value
+      location:
+        type: string
+        pattern: '^site_[0-9]{2}$'
+      indicator:
+        enum: [temperature, humidity, ventilation, leak, water_flow]
+      value:
+        type: [number, "null"]                   # null для STALE
       severity:
-        ?   # подсказка: enum WARNING / CRITICAL / STALE
+        enum: [WARNING, CRITICAL, STALE]
       action:
-        ?   # подсказка: enum ALERT_CREATED / ESCALATED / DUPLICATE
+        enum: [ALERT_CREATED, ESCALATED, DUPLICATE]
       at:
-        ?   # подсказка: string, format date-time
+        type: string
+        format: date-time
 
-  # TODO — заполните
+  # Запрос на смену статуса инцидента (строка transitions.csv прототипа)
   TransitionRequest:
     type: object
     required: [incident_id, to, actor]
+    additionalProperties: false
     properties:
       incident_id:
-        ?   # подсказка: строка
+        type: string
+        pattern: '^inc_(a[0-9]{2}|[0-9]{3})$'
       to:
-        ?   # подсказка: enum ASSIGNED / IN_PROGRESS / CLOSED
+        enum: [ASSIGNED, IN_PROGRESS, CLOSED]
       actor:
-        ?   # подсказка: строка (роль или user_id)
+        type: string                             # user_id; роль берётся из учётной записи
+        pattern: '^[a-z]_[0-9]{3}$'
+      responsible:
+        type: [string, "null"]                   # обязателен при to=ASSIGNED, инженер этого участка
+      resolution_reason:
+        enum: [DONE, NO_ACTION, null]            # NO_ACTION — единственный путь ASSIGNED -> CLOSED
       comment:
-        ?   # подсказка: строка, nullable
+        type: [string, "null"]
+        maxLength: 500
 
-  # TODO — заполните
+  # Ответ об ошибке
   Error:
     type: object
     required: [error_code, message]
+    additionalProperties: false
     properties:
       error_code:
-        ?   # подсказка: enum VALIDATION_ERROR / UNKNOWN_LOCATION / INVALID_TRANSITION / DUPLICATE_EVENT / SENSOR_SIGNATURE_INVALID
+        enum: [VALIDATION_ERROR, UNKNOWN_LOCATION, INVALID_TRANSITION, DUPLICATE_EVENT, SENSOR_SIGNATURE_INVALID, FORBIDDEN, OUT_OF_ZONE]
       message:
-        ?   # подсказка: строка
+        type: string
       retryable:
-        ?   # подсказка: boolean
+        type: boolean                            # true только для временных сбоев; ошибки данных повторять нельзя
       details:
-        ?   # подсказка: object
+        type: object
+        properties:
+          field:
+            type: string                         # например location
+          code:
+            type: string                         # например UNKNOWN_LOCATION
+
+  # Показание датчика протечки / расхода воды (дополнение к образцу TelemetryEvent,
+  # где indicator ограничен тремя значениями)
+  LeakTelemetryEvent:
+    type: object
+    required: [event_id, time, location, indicator, value]
+    additionalProperties: false
+    properties:
+      event_id:
+        type: string
+        pattern: '^evt_[A-Za-z0-9]{6,32}$'
+      time:
+        type: string
+        format: date-time
+      location:
+        type: string
+        pattern: '^site_[0-9]{2}$'
+      indicator:
+        enum: [leak, water_flow]
+      value:
+        type: number                             # leak: 0 — сухо, 1 — протечка; water_flow: л/ч
+      signature:
+        type: string
+        description: HMAC-SHA256 подпись события
 
 examples:
 
@@ -125,3 +182,25 @@ examples:
     incident_id: inc_001
     to: CLOSED               # напрямую из NEW нельзя
     actor: e_101
+
+  invalid_location_error:
+    error_code: UNKNOWN_LOCATION
+    message: "422 VALIDATION_ERROR: участок не найден в sites.csv"
+    retryable: false
+    details:
+      field: location
+      code: UNKNOWN_LOCATION
+
+  valid_leak:
+    event_id: evt_leak0002
+    time: "2025-11-02T17:55:00Z"
+    location: site_02
+    indicator: leak
+    value: 1
+    signature: "hmac:..."
+
+  out_of_zone_assign:
+    incident_id: inc_a01
+    to: ASSIGNED
+    actor: d_001
+    responsible: e_104     # отвечает за site_03, а инцидент на site_02 -> OUT_OF_ZONE

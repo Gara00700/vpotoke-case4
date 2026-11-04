@@ -229,7 +229,7 @@ struct Transition {
 const vector<Transition> TRANSITIONS = {
     {"NEW", "ASSIGNED", {"dispatcher", "manager"}, ""},
     {"ASSIGNED", "IN_PROGRESS", {"engineer"}, ""},
-    {"IN_PROGRESS", "CLOSED", {"engineer", "manager"}, ""},
+    {"IN_PROGRESS", "CLOSED", {"manager"}, ""},         // закрывает только руководитель (11_ИБ, U-2)
     {"ASSIGNED", "CLOSED", {"manager"}, "NO_ACTION"},  // ложный вызов
 };
 // Не перечислены, значит запрещены: NEW -> CLOSED, CLOSED -> любой.
