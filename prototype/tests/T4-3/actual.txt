@@ -1,7 +1,7 @@
 == Показатели ==
 == Инциденты ==
-  ОТКЛОНЕНО  inc_901 site_99: UNKNOWN_LOCATION
-  ОТКЛОНЕНО  inc_902 : UNKNOWN_LOCATION
+  ОТКЛОНЕНО  inc_901 site_99: 422 VALIDATION_ERROR field=location code=UNKNOWN_LOCATION
+  ОТКЛОНЕНО  inc_902 : 422 VALIDATION_ERROR field=location code=UNKNOWN_LOCATION
 == Итог ==
   показателей принято 0, отклонено строк 2, дублей 0, расхождений статуса 0
   алертов: CRITICAL 0, WARNING 0, STALE 0

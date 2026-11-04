@@ -112,6 +112,13 @@ string validate_reading(const Reading& r, const set<string>& sites) {
     return "";
 }
 
+// Текст ответа об ошибке в формате контракта: 422 + код + поле.
+string error_text(const string& code) {
+    if (code == "UNKNOWN_LOCATION") return "422 VALIDATION_ERROR field=location code=UNKNOWN_LOCATION";
+    if (code == "VALIDATION_ERROR") return "422 VALIDATION_ERROR";
+    return code;
+}
+
 string validate_incident(const Incident& inc, const set<string>& sites) {
     if (sites.count(inc.location) == 0) return "UNKNOWN_LOCATION";
     if (inc.id.empty() || STATUSES.count(inc.status) == 0) return "VALIDATION_ERROR";
@@ -286,7 +293,7 @@ int main(int argc, char** argv) {
             string error = validate_reading(r, sites);
             if (error != "") {
                 rep.rejected++;
-                cout << "  ОТКЛОНЕНО  " << r.time << " " << r.location << " " << r.indicator << ": " << error << "\n";
+                cout << "  ОТКЛОНЕНО  " << r.time << " " << r.location << " " << r.indicator << ": " << error_text(error) << "\n";
                 continue;
             }
             readings.push_back(r);
@@ -307,7 +314,7 @@ int main(int argc, char** argv) {
         if (error == "" && ids.count(inc.id)) error = "DUPLICATE_EVENT";
         if (error != "") {
             rep.rejected++;
-            cout << "  ОТКЛОНЕНО  " << inc.id << " " << inc.location << ": " << error << "\n";
+            cout << "  ОТКЛОНЕНО  " << inc.id << " " << inc.location << ": " << error_text(error) << "\n";
             continue;
         }
         ids.insert(inc.id);
