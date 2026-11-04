@@ -1,0 +1,3 @@
+ОТКЛОНЕНО  inc_901 site_99: UNKNOWN_LOCATION
+ОТКЛОНЕНО  inc_902 : UNKNOWN_LOCATION
+инцидентов 0 (авто 0)

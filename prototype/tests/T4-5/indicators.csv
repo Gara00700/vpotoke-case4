@@ -1,0 +1,2 @@
+time,location,indicator,value,norm_min,norm_max,status
+2025-11-02T16:09:00Z,site_04,temperature,,20.0,26.0,STALE

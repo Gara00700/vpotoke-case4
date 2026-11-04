@@ -1,3 +1,5 @@
 prototype/sitcenter
 prototype/*.exe
 alerts_out.csv
+incidents_out.csv
+audit_log.csv

@@ -2,6 +2,25 @@
 
 Кейс-чемпионат «ВПОТОКЕ». Диспетчерская птицеводческого предприятия: мониторинг показателей датчиков и управление инцидентами. Сквозной сценарий решения — датчики протечки на поилочных линиях.
 
+## Прототип (C++17)
+
+    g++ -std=c++17 -O2 -o prototype/sitcenter prototype/sitcenter.cpp
+    ./prototype/sitcenter --extra extra_data/indicators_leak.csv --out frontend/data
+    bash prototype/run_tests.sh          # тесты T4-1…T4-6
+
+Параметры: `--data` папка с sites/indicators/incidents (по умолчанию `01_данные`), `--extra` дополнительный файл показателей, `--transitions` файл переходов статусов, `--out` куда писать результат.
+
+Выход: `alerts_out.csv` (alert_id, at, location, indicator, value, severity, action), `incidents_out.csv`, `audit_log.csv`.
+
+Правила: формула severity из 02_правила.md (граница нормы — норма, до 10% — WARNING, больше — CRITICAL, пусто — STALE), A-3 автоинцидент при 2 CRITICAL за 15 мин (протечка — сразу), A-5 дубль в окне 5 мин, жизненный цикл и роли — раздел 5 кода.
+
+## Панель диспетчера (frontend)
+
+    python3 -m http.server 8000
+    # открыть http://localhost:8000/frontend/
+
+Страница читает файлы из `frontend/data` и обновляется каждые 5 секунд. Если открыть `index.html` двойным щелчком, страница попросит выбрать CSV вручную.
+
 ## Структура
 
 | Путь | Что лежит |
@@ -10,12 +29,6 @@
 | `extra_data/indicators_leak.csv` | наши дополнительные показатели: протечка и расход воды |
 | `02_правила.md` … `11_ИБ.md` | материалы кейса по шаблонам организатора |
 | `04_прототип.py` | шаблон организатора на Python (для справки) |
-| `prototype/` | наш прототип на C++17, пишется пошагово |
+| `prototype/` | прототип на C++17 и тесты T4-1…T4-6 |
+| `frontend/` | панель диспетчера (HTML без зависимостей) |
 | `diagrams/schemes.drawio` | схемы: потоки данных, ER, жизненный цикл |
-
-## Прототип
-
-    g++ -std=c++17 -o prototype/sitcenter prototype/sitcenter.cpp
-    cd 01_данные && ../prototype/sitcenter
-
-Текущий шаг 1: чтение `indicators.csv`.

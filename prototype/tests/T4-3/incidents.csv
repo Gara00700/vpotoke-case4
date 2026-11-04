@@ -1,0 +1,3 @@
+incident_id,type,location,time,responsible,status,deadline
+inc_901,temperature,site_99,2025-11-01T08:00:00Z,,NEW,2025-11-01T09:00:00Z
+inc_902,temperature,,2025-11-01T08:00:00Z,,NEW,2025-11-01T09:00:00Z

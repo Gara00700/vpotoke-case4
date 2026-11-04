@@ -1,0 +1,5 @@
+ПЕРЕХОД ОТКЛОНЁН inc_001 -> CLOSED (engineer): INVALID_TRANSITION
+ПЕРЕХОД inc_001 NEW -> ASSIGNED (d_001)
+inc_001,temperature,site_01,2025-11-01T08:00:00Z,e_101,ASSIGNED
+incident,inc_001,created,,NEW,mobile,2025-11-01T08:00:00Z
+incident,inc_001,assigned,NEW,ASSIGNED,d_001,2025-11-01T08:05:00Z

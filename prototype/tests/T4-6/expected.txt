@@ -1,0 +1,2 @@
+alrt_0001,2025-11-02T17:55:00Z,site_02,leak,1,CRITICAL,ESCALATED
+АВТОИНЦИДЕНТ inc_a01 leak site_02, дедлайн 2025-11-02T18:55:00Z

@@ -1,0 +1,2 @@
+alrt_0001,2025-11-02T16:09:00Z,site_04,temperature,,STALE,ESCALATED
+алертов: CRITICAL 0, WARNING 0, STALE 1

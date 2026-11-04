@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ситуационный центр</title>
+<style>
+  :root {
+    --bg: #0f1419; --panel: #182029; --line: #2a3440; --text: #e6edf3; --muted: #8b98a5;
+    --critical: #f85149; --warning: #d29922; --stale: #8b949e; --normal: #3fb950; --accent: #58a6ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+           padding: 16px 24px; border-bottom: 1px solid var(--line); }
+  h1 { margin: 0; font-size: 20px; }
+  h2 { margin: 0 0 12px; font-size: 15px; }
+  .muted { color: var(--muted); }
+  main { padding: 20px 24px; display: grid; gap: 20px; max-width: 1400px; margin: 0 auto; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .kpi, .panel, .site { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  .kpi { padding: 14px 16px; }
+  .kpi b { display: block; font-size: 28px; margin-top: 4px; }
+  .sites { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .site { padding: 14px 16px; border-left: 4px solid var(--normal); }
+  .site.CRITICAL { border-left-color: var(--critical); }
+  .site.WARNING { border-left-color: var(--warning); }
+  .site.STALE { border-left-color: var(--stale); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 1000px) { .grid2 { grid-template-columns: 1fr; } }
+  .panel { padding: 16px; overflow: auto; max-height: 460px; }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .bar h2 { margin: 0; }
+  select, button, input[type=file] { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 500; position: sticky; top: -16px; background: var(--panel); }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+  .tag.CRITICAL { background: #f851492b; color: var(--critical); }
+  .tag.WARNING { background: #d299222b; color: var(--warning); }
+  .tag.STALE { background: #8b949e2b; color: var(--stale); }
+  .tag.NEW { background: #58a6ff2b; color: var(--accent); }
+  .tag.ASSIGNED, .tag.IN_PROGRESS { background: #d299222b; color: var(--warning); }
+  .tag.CLOSED { background: #3fb9502b; color: var(--normal); }
+  #loader { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Ситуационный центр · птицефабрика</h1>
+    <div class="muted" id="updated">Загрузка данных…</div>
+  </div>
+  <div id="loader">
+    <span class="muted">Откройте выходные файлы программы:</span>
+    <input type="file" id="files" multiple accept=".csv">
+  </div>
+</header>
+
+<main>
+  <section class="kpis" id="kpis"></section>
+  <section class="sites" id="sites"></section>
+  <section class="grid2">
+    <div class="panel">
+      <div class="bar">
+        <h2>Оповещения</h2>
+        <select id="severityFilter">
+          <option value="">все уровни</option><option>CRITICAL</option><option>WARNING</option><option>STALE</option>
+        </select>
+      </div>
+      <table id="alerts"></table>
+    </div>
+    <div class="panel">
+      <div class="bar">
+        <h2>Инциденты</h2>
+        <select id="statusFilter">
+          <option value="">все статусы</option><option>NEW</option><option>ASSIGNED</option><option>IN_PROGRESS</option><option>CLOSED</option>
+        </select>
+      </div>
+      <table id="incidents"></table>
+    </div>
+  </section>
+  <section class="panel">
+    <h2>Журнал аудита</h2>
+    <table id="audit"></table>
+  </section>
+</main>
+
+<script>
+// Панель читает файлы, которые пишет prototype/sitcenter:
+// alerts_out.csv, incidents_out.csv, audit_log.csv (папка frontend/data) и справочник 01_данные/sites.csv.
+const FILES = {
+  alerts: "data/alerts_out.csv",
+  incidents: "data/incidents_out.csv",
+  audit: "data/audit_log.csv",
+  sites: "../01_данные/sites.csv",
+};
+const RANK = { CRITICAL: 3, WARNING: 2, STALE: 1, NORMAL: 0 };
+let data = { alerts: [], incidents: [], audit: [], sites: [] };
+
+function parseCsv(text) {
+  const [header, ...lines] = text.trim().split(/\r?\n/);
+  const keys = header.split(",");
+  return lines.filter(Boolean).map(line => {
+    const cells = line.split(",");
+    return Object.fromEntries(keys.map((k, i) => [k, cells[i] ?? ""]));
+  });
+}
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const tag = v => `<span class="tag ${esc(v)}">${esc(v)}</span>`;
+const time = iso => iso ? iso.replace("T", " ").slice(0, 16) : "—";
+const siteName = id => (data.sites.find(s => s.site_id === id) || {}).name || id;
+
+function table(el, columns, rows) {
+  el.innerHTML = `<tr>${columns.map(c => `<th>${c[0]}</th>`).join("")}</tr>` +
+    (rows.length ? rows.map(r => `<tr>${columns.map(c => `<td>${c[1](r)}</td>`).join("")}</tr>`).join("")
+                 : `<tr><td class="muted" colspan="${columns.length}">нет записей</td></tr>`);
+}
+
+function render() {
+  const open = data.incidents.filter(i => i.status !== "CLOSED");
+  const count = sev => data.alerts.filter(a => a.severity === sev).length;
+  document.getElementById("kpis").innerHTML = [
+    ["CRITICAL", count("CRITICAL")], ["WARNING", count("WARNING")], ["STALE", count("STALE")],
+    ["Открытые инциденты", open.length], ["Автоинциденты", data.incidents.filter(i => i.source === "auto").length],
+  ].map(([label, n]) => `<div class="kpi"><span class="muted">${label}</span><b>${n}</b></div>`).join("");
+
+  // Карточка участка: худший уровень за период, число алертов по уровням, открытые инциденты.
+  const sites = data.sites.length ? data.sites : [...new Set(data.alerts.map(a => a.location))].map(id => ({ site_id: id, name: id }));
+  document.getElementById("sites").innerHTML = sites.map(s => {
+    const alerts = data.alerts.filter(a => a.location === s.site_id);
+    const worst = alerts.reduce((w, a) => RANK[a.severity] > RANK[w] ? a.severity : w, "NORMAL");
+    const n = sev => alerts.filter(a => a.severity === sev).length;
+    const leak = alerts.some(a => a.indicator === "leak") ? " " + tag("CRITICAL").replace(">CRITICAL<", ">ПРОТЕЧКА<") : "";
+    const incs = open.filter(i => i.location === s.site_id).length;
+    return `<div class="site ${worst}"><b>${esc(s.name)}</b>${leak}<div class="muted">${esc(s.site_id)} · ${esc(s.zone || "")}</div>
+            <div>CRIT ${n("CRITICAL")} · WARN ${n("WARNING")} · STALE ${n("STALE")}</div>
+            <div class="muted">открытых инцидентов: ${incs}</div></div>`;
+  }).join("");
+
+  const sev = document.getElementById("severityFilter").value;
+  const alerts = data.alerts.filter(a => !sev || a.severity === sev).sort((a, b) => b.at.localeCompare(a.at));
+  table(document.getElementById("alerts"), [
+    ["Время", a => time(a.at)], ["Участок", a => esc(siteName(a.location))], ["Показатель", a => esc(a.indicator)],
+    ["Значение", a => esc(a.value || "—")], ["Уровень", a => tag(a.severity)], ["Действие", a => esc(a.action)],
+  ], alerts);
+
+  const st = document.getElementById("statusFilter").value;
+  const incidents = data.incidents.filter(i => !st || i.status === st).sort((a, b) => b.time.localeCompare(a.time));
+  table(document.getElementById("incidents"), [
+    ["ID", i => esc(i.incident_id)], ["Тип", i => esc(i.type)], ["Участок", i => esc(siteName(i.location))],
+    ["Статус", i => tag(i.status)], ["Ответственный", i => esc(i.responsible || "—")],
+    ["Дедлайн", i => time(i.deadline)], ["Источник", i => esc(i.source)],
+  ], incidents);
+
+  table(document.getElementById("audit"), [
+    ["ID", e => esc(e.event_id)], ["Время", e => time(e.at)], ["Объект", e => esc(e.entity_type + " " + e.entity_id)],
+    ["Действие", e => esc(e.action)], ["Статус", e => esc((e.from_status ? e.from_status + " → " : "") + e.to_status)],
+    ["Кто", e => esc(e.actor)],
+  ], [...data.audit].reverse().slice(0, 200));
+}
+
+// Режим 1: страница открыта через веб-сервер — читаем файлы сами и обновляем раз в 5 секунд.
+async function loadFromServer() {
+  try {
+    const texts = await Promise.all(Object.values(FILES).map(f =>
+      fetch(f + "?t=" + Date.now()).then(r => { if (!r.ok) throw new Error(f); return r.text(); })));
+    Object.keys(FILES).forEach((k, i) => data[k] = parseCsv(texts[i]));
+    document.getElementById("updated").textContent = "Обновлено " + new Date().toLocaleTimeString("ru-RU") + " · автообновление 5 с";
+    render();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Режим 2: страница открыта как файл — пользователь выбирает CSV вручную.
+document.getElementById("files").addEventListener("change", async e => {
+  for (const file of e.target.files) {
+    const rows = parseCsv(await file.text());
+    if (file.name.startsWith("alerts")) data.alerts = rows;
+    else if (file.name.startsWith("incidents")) data.incidents = rows;
+    else if (file.name.startsWith("audit")) data.audit = rows;
+    else if (file.name.startsWith("sites")) data.sites = rows;
+  }
+  document.getElementById("updated").textContent = "Данные загружены из файлов";
+  render();
+});
+
+document.getElementById("severityFilter").addEventListener("change", render);
+document.getElementById("statusFilter").addEventListener("change", render);
+
+loadFromServer().then(ok => {
+  if (ok) setInterval(loadFromServer, 5000);
+  else {
+    document.getElementById("loader").style.display = "block";
+    document.getElementById("updated").textContent = "Нет связи с сервером: выберите файлы вручную";
+    render();
+  }
+});
+</script>
+</body>
+</html>

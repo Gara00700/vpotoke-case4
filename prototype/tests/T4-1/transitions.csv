@@ -1,0 +1,3 @@
+incident_id,to,actor_role,actor,responsible,reason,at
+inc_001,CLOSED,engineer,e_101,,,2025-11-01T08:02:00Z
+inc_001,ASSIGNED,dispatcher,d_001,e_101,,2025-11-01T08:05:00Z

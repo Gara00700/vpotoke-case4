@@ -1,0 +1,2 @@
+incident_id,type,location,time,responsible,status,deadline
+inc_001,temperature,site_01,2025-11-01T08:00:00Z,,NEW,2025-11-01T09:00:00Z

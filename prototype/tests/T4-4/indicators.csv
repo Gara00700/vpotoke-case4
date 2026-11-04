@@ -1,0 +1,3 @@
+time,location,indicator,value,norm_min,norm_max,status
+2025-11-01T10:00:00Z,site_01,humidity,85.0,40.0,70.0,CRITICAL
+2025-11-01T10:03:00Z,site_01,humidity,85.0,40.0,70.0,CRITICAL

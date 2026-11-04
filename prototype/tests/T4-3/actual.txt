@@ -1,0 +1,9 @@
+== Показатели ==
+== Инциденты ==
+  ОТКЛОНЕНО  inc_901 site_99: UNKNOWN_LOCATION
+  ОТКЛОНЕНО  inc_902 : UNKNOWN_LOCATION
+== Итог ==
+  показателей принято 0, отклонено строк 2, дублей 0, расхождений статуса 0
+  алертов: CRITICAL 0, WARNING 0, STALE 0
+  инцидентов 0 (авто 0), событий аудита 0
+  файлы: tests/T4-3//alerts_out.csv, incidents_out.csv, audit_log.csv
