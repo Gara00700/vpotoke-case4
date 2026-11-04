@@ -58,7 +58,6 @@ vector<string> split(string line) {
     string cell;
     stringstream ss(line);
     while (getline(ss, cell, ',')) cells.push_back(cell);
-    if (!line.empty() && line.back() == ',') cells.push_back("");  // пустая последняя колонка
     return cells;
 }
 
@@ -197,7 +196,7 @@ string engineer_for(const map<string, Employee>& employees, const string& site) 
 
 const int DEDUP_WINDOW_MIN = 5;      // A-5: дубль в окне 5 минут
 const int CRITICAL_WINDOW_MIN = 15;  // A-3: 2 CRITICAL за 15 минут -> автоинцидент
-const map<string, int> SLA_CLOSE_MIN = {{"CRITICAL", 60}, {"WARNING", 240}, {"STALE", 60}};
+const int SLA_CRITICAL_CLOSE_MIN = 60;  // автоинцидент всегда CRITICAL: закрыть за 1 ч
 
 // Формула severity, 5 веток. Граница нормы входит в норму.
 string calc_severity(const Reading& r) {
@@ -311,7 +310,7 @@ void process_readings(vector<Reading>& readings, Report& rep, AuditLog& audit,
             char inc_id[16];
             snprintf(inc_id, sizeof inc_id, "inc_a%02zu", rep.auto_incidents.size() + 1);
             Incident inc{inc_id, r.indicator, r.location, r.time, engineer_for(employees, r.location), "NEW",
-                         to_iso(r.minute + SLA_CLOSE_MIN.at("CRITICAL")), "auto"};
+                         to_iso(r.minute + SLA_CRITICAL_CLOSE_MIN), "auto"};
             rep.auto_incidents.push_back(inc);
             audit.add("incident", inc.id, "created", "", "NEW", "system", r.time);
         }
