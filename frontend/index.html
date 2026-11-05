@@ -234,7 +234,7 @@ const FILES = {
   sites: "../01_данные/sites.csv",
   employees: "../extra_data/employees.csv",
 };
-const READINGS = ["../01_данные/indicators.csv", "data/indicators_live.csv"];
+const READINGS = ["../01_данные/indicators.csv"];
 const RANK = { CRITICAL: 3, WARNING: 2, STALE: 1, NORMAL: 0 };
 const COLOR = { CRITICAL: "var(--critical)", WARNING: "var(--warning)", STALE: "var(--stale)", NORMAL: "var(--normal)" };
 const IND = {
@@ -423,7 +423,7 @@ function renderAudit() {
   ], [...data.audit].reverse().slice(0, 300));
 }
 
-// Всплывающее уведомление при появлении нового CRITICAL (для живой демонстрации).
+// Всплывающее уведомление при появлении нового CRITICAL.
 function notifyNew() {
   const crit = data.alerts.filter(a => a.severity === "CRITICAL").sort((a, b) => a.at.localeCompare(b.at));
   const newest = crit[crit.length - 1];
