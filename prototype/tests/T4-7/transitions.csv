@@ -1,6 +1,0 @@
-incident_id,to,actor_role,actor,responsible,reason,at
-inc_a01,ASSIGNED,dispatcher,d_001,e_104,,2025-11-02T17:57:00Z
-inc_a01,ASSIGNED,dispatcher,d_001,e_103,,2025-11-02T17:58:00Z
-inc_a01,IN_PROGRESS,engineer,e_104,,,2025-11-02T18:00:00Z
-inc_a01,CLOSED,manager,x_999,,,2025-11-02T18:01:00Z
-inc_a01,IN_PROGRESS,engineer,e_103,,,2025-11-02T18:02:00Z

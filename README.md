@@ -6,7 +6,7 @@
 
     g++ -std=c++17 -O2 -o prototype/sitcenter prototype/sitcenter.cpp
     ./prototype/sitcenter --employees extra_data/employees.csv --out frontend/data
-    bash prototype/run_tests.sh          # тесты T4-1…T4-7
+    bash prototype/run_tests.sh          # тесты T4-1…T4-5
 
 Параметры: `--data` папка с sites/indicators/incidents (по умолчанию `01_данные`), `--extra` дополнительный файл показателей, `--transitions` файл переходов статусов, `--employees` учётные записи сотрудников, `--out` куда писать результат.
 
@@ -40,6 +40,6 @@
 | `extra_data/employees.csv` | учётные записи сотрудников и закреплённые участки |
 | `02_правила.md` … `11_ИБ.md` | материалы кейса по шаблонам организатора |
 | `04_прототип.py` | шаблон организатора на Python (для справки) |
-| `prototype/` | прототип на C++17 и тесты T4-1…T4-7 |
+| `prototype/` | прототип на C++17 и тесты T4-1…T4-5 |
 | `frontend/` | панель диспетчера (HTML без зависимостей) |
 | `diagrams/schemes.drawio` | схемы: потоки данных, ER, жизненный цикл |

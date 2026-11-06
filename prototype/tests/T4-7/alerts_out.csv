@@ -1,3 +1,0 @@
-alert_id,at,location,indicator,value,severity,action
-alrt_0001,2025-11-02T17:40:00Z,site_02,temperature,29.0,CRITICAL,ESCALATED
-alrt_0002,2025-11-02T17:50:00Z,site_02,temperature,29.5,CRITICAL,ESCALATED

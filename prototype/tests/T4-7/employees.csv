@@ -1,9 +1,0 @@
-employee_id,name,role,sites,active
-a_001,Администратор системы,admin,,yes
-d_001,Диспетчер смены,dispatcher,site_01;site_02;site_03;site_04;site_05,yes
-e_101,Инженер e_101,engineer,site_05,yes
-e_102,Инженер e_102,engineer,site_01,yes
-e_103,Инженер e_103,engineer,site_02,yes
-e_104,Инженер e_104,engineer,site_03,yes
-e_105,Инженер e_105,engineer,site_04,yes
-m_001,Руководитель смены,manager,site_01;site_02;site_03;site_04;site_05,yes

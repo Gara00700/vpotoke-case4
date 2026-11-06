@@ -1,3 +1,0 @@
-time,location,indicator,value,norm_min,norm_max,status
-2025-11-02T17:40:00Z,site_02,temperature,29.0,20.0,26.0,CRITICAL
-2025-11-02T17:50:00Z,site_02,temperature,29.5,20.0,26.0,CRITICAL

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Прогон тестов T4-1…T4-6: вывод программы и выходные CSV сверяются с expected.txt.
+# Прогон тестов T4-1…T4-5: вывод программы и выходные CSV сверяются с expected.txt.
 cd "$(dirname "$0")"
 g++ -std=c++17 -O2 -o sitcenter sitcenter.cpp || exit 1
 pass=0; fail=0
