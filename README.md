@@ -4,6 +4,10 @@
 
 ## Прототип (C++17)
 
+    python3 04_прототип.py               # собрать и запустить, результат в out/
+
+или вручную:
+
     g++ -std=c++17 -O2 -o prototype/sitcenter prototype/sitcenter.cpp
     ./prototype/sitcenter --employees extra_data/employees.csv --out frontend/data
     bash prototype/run_tests.sh          # тесты T4-1…T4-5
@@ -39,7 +43,11 @@
 | `01_данные/` | исходные CSV организатора, не изменяются |
 | `extra_data/employees.csv` | учётные записи сотрудников и закреплённые участки |
 | `02_правила.md` … `11_ИБ.md` | материалы кейса по шаблонам организатора |
-| `04_прототип.py` | шаблон организатора на Python (для справки) |
+| `04_прототип.py` | запуск прототипа одной командой: собирает C++ и пишет результат в `out/` |
+| `05_презентация.pdf`, `06_приложение.pdf` | презентация (8 слайдов) и приложение |
 | `prototype/` | прототип на C++17 и тесты T4-1…T4-5 |
 | `frontend/` | панель диспетчера (HTML без зависимостей) |
-| `diagrams/schemes.drawio` | схемы: потоки данных, ER, жизненный цикл |
+| `diagrams/schemes.drawio` | схемы draw.io: потоки данных, ER (6 сущностей), жизненный цикл; PNG рядом |
+| `diagrams/scheme_simple.*` | общая схема системы |
+| `diagrams/blok_shema_list1.*`, `blok_shema_list2.png` | схема алгоритма по ГОСТ 19.701-90 |
+| `screenshots/` | скриншоты панели диспетчера |

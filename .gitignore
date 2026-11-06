@@ -4,3 +4,4 @@ alerts_out.csv
 incidents_out.csv
 audit_log.csv
 accounts_log.csv
+out/
