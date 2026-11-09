@@ -50,5 +50,4 @@
 | `frontend/` | панель диспетчера (HTML без зависимостей) |
 | `diagrams/schemes.drawio` | схемы draw.io: потоки данных, ER (6 сущностей), жизненный цикл; PNG рядом |
 | `diagrams/scheme_simple.*` | общая схема системы |
-| `diagrams/blok_shema_list1.*`, `blok_shema_list2.png` | схема алгоритма по ГОСТ 19.701-90 |
 | `screenshots/` | скриншоты панели диспетчера |
